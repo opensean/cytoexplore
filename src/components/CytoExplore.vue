@@ -82,14 +82,17 @@
          // use the result of id.split("renderNodePlot-") to find node data in elements
          //console.log(this.cy.$id(id.split("cyExRenderNode-")[0]));
          //console.log(this.cyConfig.elements.nodes);
-
+         
+         // all of these options should be put in node data
+         // e.g.
+         // return new ApexCharts(document.getElementById(id), this.nData.chartOptions).render();
          var options1 = {
                 chart: {
                   width: 250,
                   type: "radialBar",
                 },
                 //fetch series from node data 
-                series: this.nData[id.split("cyExRenderNode-")[1]].series,
+                series: this.nData[id.split("cyExRenderNode-")[1]].chart.series,
                 plotOptions: {
                   radialBar: {
                     dataLabels: {
@@ -100,7 +103,7 @@
                     }
                   }
                 },
-                labels: ['TEAM A', 'TEAM B', 'TEAM C', 'TEAM D']
+                labels: this.nData[id.split("cyExRenderNode-")[1]].chart.labels
           };
           return new ApexCharts(document.getElementById(id), options1).render();
       },
