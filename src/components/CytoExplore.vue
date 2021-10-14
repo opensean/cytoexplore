@@ -1,6 +1,6 @@
 <template>
-  <v-container id="cy" fluid class="fill-height">
-  </v-container>
+    <v-container id="cy" fluid class="fill-height">
+    </v-container>
 </template>
 
 <script>
@@ -8,7 +8,8 @@
   import nodeHtmlLabel from 'cytoscape-node-html-label';
   import ApexCharts from "apexcharts";
   import dagre from 'cytoscape-dagre';
-  import sixNodeDagre from '@/js/examples';
+  import SixNodeDagreRadialBar from '@/examples/sixNodeDagreRadialBar';
+  import SixNodeDagreRadialGauge from '@/examples/sixNodeDagreRadialGauge';
   
   cytoscape.use(dagre);
   nodeHtmlLabel( cytoscape );
@@ -17,18 +18,25 @@
     name: 'cytoexplore',
 
     data: () => ({
-      cyConfig: sixNodeDagre,
-      nData: sixNodeDagre.elements.nodes.reduce(function(obj, x) {
-           obj[x.data.id] = x.data;
-           return obj;
-         }, {}),
+      examples: [SixNodeDagreRadialBar, SixNodeDagreRadialGauge],
+      selection: SixNodeDagreRadialBar,
+      cyEx: new SixNodeDagreRadialBar(),
+      nData: null,
       cy: null,
       resolve: null,
       reject: null
+      
 
     }),
 
+
     mounted: function(){
+
+     this.nData = this.cyEx.graph.elements.nodes.reduce(function(obj, x) {
+           obj[x.data.id] = x.data;
+           return obj;
+         }, {});
+
       // Select the node that will be observed for mutations
       const targetNode = document.getElementById('cy');
       
@@ -37,27 +45,17 @@
 
       const observer = new MutationObserver(this.filterEvents);
       observer.observe(targetNode, config);
-
+       console.log(this.cyEx);
       //cytoscape config
-      this.cyConfig.container = document.getElementById('cy'); // container to render in
+      this.cyEx.graph.container = document.getElementById('cy'); // container to render in
       //canvas
-      var cyCanvas = cytoscape(this.cyConfig);
+      var cyCanvas = cytoscape(this.cyEx.graph);
       cyCanvas.viewport({zoom:0.75});
       cyCanvas.center();
       //cy.layout({ name: 'klay'}).run()
-      cyCanvas.nodeHtmlLabel([
-        {
-          query: 'node', // cytoscape query selector
-          halign: 'center', // title vertical position. Can be 'left',''center, 'right'
-          valign: 'center', // title vertical position. Can be 'top',''center, 'bottom'
-          halignBox: 'center', // title vertical position. Can be 'left',''center, 'right'
-          valignBox: 'top', // title relative box vertical position. Can be 'top',''center, 'bottom'
-          cssClass: '', // any classes will be as attribute of <div> container for every title
-          tpl(data) {
-            return '<div id="cyExRenderNode-' + data.id +'"></div>'
-          }
-        }
-      ]);
+      cyCanvas.nodeHtmlLabel(
+        this.cyEx.nodeHtmlLabelOptions
+      );
     },
 
     methods: {
@@ -77,35 +75,7 @@
        },
 
        renderPlot: function(id) {
-         // filter nodes to fetch data
-         //console.log("rendering plot for " + id.split("renderNodePlot-")[1]);
-         // use the result of id.split("renderNodePlot-") to find node data in elements
-         //console.log(this.cy.$id(id.split("cyExRenderNode-")[0]));
-         //console.log(this.cyConfig.elements.nodes);
-         
-         // all of these options should be put in node data
-         // e.g.
-         // return new ApexCharts(document.getElementById(id), this.nData.chartOptions).render();
-         var options1 = {
-                chart: {
-                  width: 250,
-                  type: "radialBar",
-                },
-                //fetch series from node data 
-                series: this.nData[id.split("cyExRenderNode-")[1]].chart.series,
-                plotOptions: {
-                  radialBar: {
-                    dataLabels: {
-                      total: {
-                        show: true,
-                        label: id.split("cyExRenderNode-")[1]
-                      }
-                    }
-                  }
-                },
-                labels: this.nData[id.split("cyExRenderNode-")[1]].chart.labels
-          };
-          return new ApexCharts(document.getElementById(id), options1).render();
+           return new ApexCharts(document.getElementById(id), this.nData[id.split("cyExRenderNode-")[1]].options).render();
       },
  
     },
